@@ -387,14 +387,19 @@ function EventsManager() {
 
   const handleEdit = (event: Event) => {
     setEditingEvent(event);
+    // Format date to YYYY-MM-DD - Handle both string and Date objects
+    const dateStr = typeof event.date === 'string' 
+      ? event.date 
+      : event.date.toISOString();
+    
     setFormData({
       title: event.title,
       description: event.description,
-      date: event.date.split('T')[0], // Format YYYY-MM-DD
+      date: dateStr.split('T')[0], // Format YYYY-MM-DD
       location: event.location,
-      type: event.type,
-      capacity: event.capacity.toString(),
-      isContest: event.isContest
+      type: event.eventType,
+      capacity: "50", // Default value, not in schema
+      isContest: event.eventType === "contest"
     });
     setDialogOpen(true);
   };
@@ -460,7 +465,7 @@ function EventsManager() {
                     <div>
                       <CardTitle className="flex items-center">
                         {event.title}
-                        {event.isContest && (
+                        {event.eventType === "contest" && (
                           <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
                             Contest
                           </span>
@@ -487,12 +492,12 @@ function EventsManager() {
                       {event.location}
                     </span>
                     <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">
-                      {event.type}
+                      {event.eventType}
                     </span>
                     <span className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">
-                      Capacity: {event.capacity}
+                      Duration: {event.duration} min
                     </span>
-                    {isPastEvent(event.date) && (
+                    {isPastEvent(typeof event.date === 'string' ? event.date : event.date.toISOString()) && (
                       <span className="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded">
                         Past Event
                       </span>
