@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { DiscussionCard } from "@/components/forum/DiscussionCard";
-import { ForumPost, User } from "@shared/schema";
+import { ForumPost, ForumReply, User } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -21,60 +21,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, MessageSquarePlus, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 
-// Mock authors data - will be replaced with real data when API is updated
-const mockAuthors: Record<number, Pick<User, "id" | "username" | "displayName" | "avatar" | "level">> = {
-  1: {
-    id: 1,
-    username: "johndoe",
-    displayName: "John Doe",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    level: "intermediate"
-  },
-  2: {
-    id: 2,
-    username: "janedoe",
-    displayName: "Jane Doe",
-    avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-    level: "advanced"
-  },
-  3: {
-    id: 3,
-    username: "alexwu",
-    displayName: "Alex Wu",
-    avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    level: "beginner"
-  },
-  4: {
-    id: 4,
-    username: "sarahsmith",
-    displayName: "Sarah Smith",
-    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-    level: "intermediate"
-  },
-  5: {
-    id: 5,
-    username: "mikelee",
-    displayName: "Mike Lee",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg", 
-    level: "advanced"
-  },
-  6: {
-    id: 6,
-    username: "emilyjohnson",
-    displayName: "Emily Johnson",
-    avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-    level: "beginner"
-  }
-};
-
 interface ForumPostWithAuthor extends ForumPost {
-  author: User;
+  author: Pick<User, "id" | "username" | "displayName" | "avatar" | "level">;
   repliesCount: number;
 }
 
@@ -85,14 +38,45 @@ export default function ForumPage() {
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostTags, setNewPostTags] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [authors, setAuthors] = useState<Record<number, Pick<User, "id" | "username" | "displayName" | "avatar" | "level">>>({});
   
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Fetch forum posts
   const { data: posts, isLoading } = useQuery<ForumPost[]>({
     queryKey: ["/api/forum"],
   });
+  
+  // Fetch users to get author information
+  const { data: users } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+    enabled: !isLoading && !!posts?.length,
+  });
+  
+  // Fetch forum replies to count replies per post
+  const { data: allReplies } = useQuery<ForumReply[]>({
+    queryKey: ["/api/forum/replies"],
+    enabled: !isLoading && !!posts?.length,
+  });
+  
+  // Build authors map when users are loaded
+  useEffect(() => {
+    if (users && users.length > 0) {
+      const authorsMap: Record<number, Pick<User, "id" | "username" | "displayName" | "avatar" | "level">> = {};
+      users.forEach(user => {
+        authorsMap[user.id] = {
+          id: user.id,
+          username: user.username,
+          displayName: user.displayName,
+          avatar: user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`,
+          level: user.level
+        };
+      });
+      setAuthors(authorsMap);
+    }
+  }, [users]);
 
   const createPostMutation = useMutation({
     mutationFn: async () => {
@@ -145,19 +129,30 @@ export default function ForumPage() {
     
     createPostMutation.mutate();
   };
-
-  // Add author data to posts and mocked reply counts
-  const postsWithAuthors = posts?.map(post => ({
-    ...post,
-    author: mockAuthors[post.userId] || {
-      id: post.userId,
-      username: "user",
-      displayName: "User",
-      avatar: "https://randomuser.me/api/portraits/lego/1.jpg",
-      level: "beginner"
-    },
-    repliesCount: Math.floor(Math.random() * 10) + 1 // Random number of replies between 1-10
-  }));
+  
+  // Combine posts with author information and reply counts
+  const postsWithAuthors = useMemo(() => {
+    if (!posts) return [];
+    
+    return posts.map(post => {
+      // Count replies for this post
+      const repliesCount = allReplies 
+        ? allReplies.filter(reply => reply.postId === post.id).length 
+        : 0;
+        
+      return {
+        ...post,
+        author: authors[post.userId] || {
+          id: post.userId,
+          username: "user",
+          displayName: "Unknown User",
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=user${post.userId}`,
+          level: "beginner"
+        },
+        repliesCount
+      };
+    });
+  }, [posts, authors, allReplies]);
 
   // Filter and search posts
   const filteredPosts = postsWithAuthors
@@ -167,7 +162,7 @@ export default function ForumPage() {
           searchQuery === "" ||
           post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags?.some(tag => 
+          post.tags?.some((tag: string) => 
             tag.toLowerCase().includes(searchQuery.toLowerCase())
           );
 
@@ -347,12 +342,12 @@ export default function ForumPage() {
                     </Button>
                   </div>
                 ) : (
-                  filteredPosts.map((post) => (
+                  filteredPosts.map((post: ForumPostWithAuthor) => (
                     <DiscussionCard
                       key={post.id}
                       post={post}
                       author={post.author}
-                      replies={Array(post.repliesCount)}
+                      replies={[]} // We pass an empty array as we don't need to display actual replies here
                     />
                   ))
                 )}

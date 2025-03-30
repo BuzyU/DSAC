@@ -115,7 +115,21 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000 // 24 hours
     });
     
-    this.seedData();
+    // Add only an admin user to start with
+    const adminId = this.userId++;
+    const adminPassword = "$2b$10$X4kv7j5ZcG39WgogSl1Z.edYQTThGZpLJ/zqxK5eTnStY3olD5Wm2"; // "admin123"
+    this.users.set(adminId, {
+      id: adminId,
+      username: "admin",
+      password: adminPassword,
+      displayName: "Admin",
+      email: "admin@dsac.com",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=admin",
+      bio: "Site administrator",
+      role: "admin",
+      level: "advanced",
+      createdAt: new Date()
+    });
   }
   
   // User operations
@@ -143,7 +157,9 @@ export class MemStorage implements IStorage {
       id, 
       role: "member", 
       level: "beginner",
-      createdAt: now
+      createdAt: now,
+      avatar: insertUser.avatar || null,
+      bio: insertUser.bio || null
     };
     this.users.set(id, user);
     return user;
@@ -233,7 +249,12 @@ export class MemStorage implements IStorage {
   async createContestResult(insertResult: InsertContestResult): Promise<ContestResult> {
     const id = this.contestResultId++;
     const now = new Date();
-    const result: ContestResult = { ...insertResult, id, createdAt: now };
+    const result: ContestResult = { 
+      ...insertResult, 
+      id, 
+      position: insertResult.position || null,
+      createdAt: now 
+    };
     this.contestResults.set(id, result);
     return result;
   }
@@ -352,6 +373,7 @@ export class MemStorage implements IStorage {
       ...insertPost, 
       id, 
       views: 0,
+      tags: insertPost.tags || null,
       createdAt: now,
       updatedAt: now
     };
@@ -475,6 +497,8 @@ export class MemStorage implements IStorage {
     const resource: Resource = { 
       ...insertResource, 
       id, 
+      link: insertResource.link || null,
+      content: insertResource.content || null,
       createdAt: now,
       updatedAt: now
     };
@@ -494,318 +518,6 @@ export class MemStorage implements IStorage {
   
   async deleteResource(id: number): Promise<boolean> {
     return this.resources.delete(id);
-  }
-  
-  // Seed data for development
-  private seedData() {
-    // Create admin user
-    const adminId = this.userId++;
-    const adminPassword = "$2b$10$X4kv7j5ZcG39WgogSl1Z.edYQTThGZpLJ/zqxK5eTnStY3olD5Wm2"; // "admin123"
-    this.users.set(adminId, {
-      id: adminId,
-      username: "admin",
-      password: adminPassword,
-      displayName: "Admin",
-      email: "admin@dsac.com",
-      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-      bio: "Site administrator",
-      role: "admin",
-      level: "advanced",
-      createdAt: new Date("2023-01-01")
-    });
-    
-    // Create some members
-    const sophiaId = this.userId++;
-    this.users.set(sophiaId, {
-      id: sophiaId,
-      username: "sophia",
-      password: adminPassword, // same password for simplicity
-      displayName: "Sophia Chen",
-      email: "sophia@dsac.com",
-      avatar: "https://randomuser.me/api/portraits/women/32.jpg",
-      bio: "Passionate about algorithms",
-      role: "member",
-      level: "advanced",
-      createdAt: new Date("2023-01-02")
-    });
-    
-    const alexId = this.userId++;
-    this.users.set(alexId, {
-      id: alexId,
-      username: "alex",
-      password: adminPassword,
-      displayName: "Alex Johnson",
-      email: "alex@dsac.com",
-      avatar: "https://randomuser.me/api/portraits/men/75.jpg",
-      bio: "Software engineer focusing on data structures",
-      role: "member",
-      level: "advanced",
-      createdAt: new Date("2023-01-03")
-    });
-    
-    const rahulId = this.userId++;
-    this.users.set(rahulId, {
-      id: rahulId,
-      username: "rahul",
-      password: adminPassword,
-      displayName: "Rahul Patel",
-      email: "rahul@dsac.com",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      bio: "CS student interested in competitive programming",
-      role: "member",
-      level: "intermediate",
-      createdAt: new Date("2023-01-04")
-    });
-    
-    const jamieId = this.userId++;
-    this.users.set(jamieId, {
-      id: jamieId,
-      username: "jamie",
-      password: adminPassword,
-      displayName: "Jamie Taylor",
-      email: "jamie@dsac.com",
-      avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-      bio: "Learning DSA for better problem-solving",
-      role: "member",
-      level: "intermediate",
-      createdAt: new Date("2023-01-05")
-    });
-    
-    const mayaId = this.userId++;
-    this.users.set(mayaId, {
-      id: mayaId,
-      username: "maya",
-      password: adminPassword,
-      displayName: "Maya Williams",
-      email: "maya@dsac.com",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-      bio: "Graph algorithms specialist",
-      role: "member",
-      level: "advanced",
-      createdAt: new Date("2023-01-06")
-    });
-    
-    // Create some events
-    const eventDate1 = new Date();
-    eventDate1.setDate(eventDate1.getDate() + 7); // One week from now
-    
-    const event1Id = this.eventId++;
-    this.events.set(event1Id, {
-      id: event1Id,
-      title: "Weekly DSA Contest",
-      description: "Join our weekly contest focusing on graph algorithms and dynamic programming challenges.",
-      eventType: "contest",
-      date: eventDate1,
-      duration: 150, // 2.5 hours
-      location: "Virtual",
-      createdBy: adminId,
-      createdAt: new Date("2023-09-15")
-    });
-    
-    const eventDate2 = new Date();
-    eventDate2.setDate(eventDate2.getDate() + 9);
-    
-    const event2Id = this.eventId++;
-    this.events.set(event2Id, {
-      id: event2Id,
-      title: "Google Interview Prep",
-      description: "Workshop with a Google engineer on interview strategies and common technical questions.",
-      eventType: "workshop",
-      date: eventDate2,
-      duration: 90, // 1.5 hours
-      location: "CS Building, Room 103",
-      createdBy: adminId,
-      createdAt: new Date("2023-09-16")
-    });
-    
-    const eventDate3 = new Date();
-    eventDate3.setDate(eventDate3.getDate() + 12);
-    
-    const event3Id = this.eventId++;
-    this.events.set(event3Id, {
-      id: event3Id,
-      title: "Beginner's DSA Workshop",
-      description: "Introduction to fundamental data structures and algorithms for beginners. Perfect for first-year students.",
-      eventType: "workshop",
-      date: eventDate3,
-      duration: 120, // 2 hours
-      location: "Library Study Room",
-      createdBy: sophiaId,
-      createdAt: new Date("2023-09-17")
-    });
-    
-    // Create past events for contest results
-    const pastEvent1 = this.eventId++;
-    const pastEventDate1 = new Date();
-    pastEventDate1.setDate(pastEventDate1.getDate() - 14);
-    
-    this.events.set(pastEvent1, {
-      id: pastEvent1,
-      title: "Monthly Algorithm Challenge",
-      description: "Solve challenging algorithm problems in this monthly competition.",
-      eventType: "contest",
-      date: pastEventDate1,
-      duration: 180, // 3 hours
-      location: "Virtual",
-      createdBy: adminId,
-      createdAt: new Date("2023-09-01")
-    });
-    
-    // Add some contest results
-    const result1Id = this.contestResultId++;
-    this.contestResults.set(result1Id, {
-      id: result1Id,
-      eventId: pastEvent1,
-      userId: sophiaId,
-      position: 1,
-      score: 1245,
-      createdAt: new Date("2023-09-15")
-    });
-    
-    const result2Id = this.contestResultId++;
-    this.contestResults.set(result2Id, {
-      id: result2Id,
-      eventId: pastEvent1,
-      userId: alexId,
-      position: 2,
-      score: 1102,
-      createdAt: new Date("2023-09-15")
-    });
-    
-    const result3Id = this.contestResultId++;
-    this.contestResults.set(result3Id, {
-      id: result3Id,
-      eventId: pastEvent1,
-      userId: rahulId,
-      position: 3,
-      score: 986,
-      createdAt: new Date("2023-09-15")
-    });
-    
-    const result4Id = this.contestResultId++;
-    this.contestResults.set(result4Id, {
-      id: result4Id,
-      eventId: pastEvent1,
-      userId: jamieId,
-      position: 4,
-      score: 845,
-      createdAt: new Date("2023-09-15")
-    });
-    
-    // Create forum posts
-    const post1Id = this.forumPostId++;
-    this.forumPosts.set(post1Id, {
-      id: post1Id,
-      title: "Optimizing Dynamic Programming Solutions",
-      content: "I'm working on some DP problems from LeetCode and noticed my solutions are correct but time out on larger inputs. Any tips for optimizing DP approaches? I'm specifically struggling with state compression and memoization techniques.",
-      userId: rahulId,
-      views: 241,
-      createdAt: new Date("2023-10-05"),
-      updatedAt: new Date("2023-10-05"),
-      tags: ["dynamic-programming", "optimization", "leetcode"]
-    });
-    
-    const post2Id = this.forumPostId++;
-    this.forumPosts.set(post2Id, {
-      id: post2Id,
-      title: "Most Efficient Graph Traversal for Social Networks",
-      content: "For my project, I need to analyze friendship connections in a social network. What's the most efficient algorithm for finding degrees of separation between two users? BFS seems straightforward but I'm wondering if there are more optimized approaches for large datasets.",
-      userId: mayaId,
-      views: 176,
-      createdAt: new Date("2023-10-04"),
-      updatedAt: new Date("2023-10-04"),
-      tags: ["graphs", "bfs", "social-networks"]
-    });
-    
-    // Add some forum replies
-    const reply1Id = this.forumReplyId++;
-    this.forumReplies.set(reply1Id, {
-      id: reply1Id,
-      postId: post1Id,
-      content: "For DP problems, I've found that using an iterative approach instead of recursive with memoization often reduces the overhead. Also, try to minimize your state representation - sometimes you don't need to keep track of as much as you think.",
-      userId: sophiaId,
-      upvotes: 5,
-      isBestAnswer: true,
-      createdAt: new Date("2023-10-05T02:30:00"),
-      updatedAt: new Date("2023-10-05T02:30:00")
-    });
-    
-    const reply2Id = this.forumReplyId++;
-    this.forumReplies.set(reply2Id, {
-      id: reply2Id,
-      postId: post1Id,
-      content: "One thing that helped me was to draw out the state transitions and really understand the recurrence relation. Sometimes you can optimize by combining states or eliminating unnecessary calculations.",
-      userId: alexId,
-      upvotes: 3,
-      isBestAnswer: false,
-      createdAt: new Date("2023-10-05T03:15:00"),
-      updatedAt: new Date("2023-10-05T03:15:00")
-    });
-    
-    const reply3Id = this.forumReplyId++;
-    this.forumReplies.set(reply3Id, {
-      id: reply3Id,
-      postId: post2Id,
-      content: "For social networks, BFS is indeed a good approach for finding shortest paths (degrees of separation). For very large graphs, you might want to look into bidirectional BFS which runs the search from both ends simultaneously.",
-      userId: sophiaId,
-      upvotes: 4,
-      isBestAnswer: true,
-      createdAt: new Date("2023-10-04T14:20:00"),
-      updatedAt: new Date("2023-10-04T14:20:00")
-    });
-    
-    // Add resources
-    const resource1Id = this.resourceId++;
-    this.resources.set(resource1Id, {
-      id: resource1Id,
-      title: "DSA Fundamentals",
-      description: "Comprehensive guide to basic data structures and algorithms for beginners.",
-      content: "This guide covers the fundamental data structures and algorithms every programmer should know, from arrays and linked lists to sorting and searching algorithms.",
-      resourceType: "guide",
-      link: "#",
-      userId: adminId,
-      createdAt: new Date("2023-08-15"),
-      updatedAt: new Date("2023-08-15")
-    });
-    
-    const resource2Id = this.resourceId++;
-    this.resources.set(resource2Id, {
-      id: resource2Id,
-      title: "Video Tutorials",
-      description: "Step-by-step video explanations of common algorithm patterns and techniques.",
-      content: "This series of video tutorials walks through common algorithm patterns with visualizations and code examples.",
-      resourceType: "video",
-      link: "#",
-      userId: sophiaId,
-      createdAt: new Date("2023-08-20"),
-      updatedAt: new Date("2023-08-20")
-    });
-    
-    const resource3Id = this.resourceId++;
-    this.resources.set(resource3Id, {
-      id: resource3Id,
-      title: "Problem Sets",
-      description: "Curated collection of DSA problems organized by difficulty and topic.",
-      content: "Practice makes perfect! This collection of problems is organized by topic and difficulty to help you build your skills progressively.",
-      resourceType: "practice",
-      link: "#",
-      userId: alexId,
-      createdAt: new Date("2023-08-25"),
-      updatedAt: new Date("2023-08-25")
-    });
-    
-    const resource4Id = this.resourceId++;
-    this.resources.set(resource4Id, {
-      id: resource4Id,
-      title: "Interview Prep",
-      description: "Comprehensive guide to technical interviews with mock questions and strategies.",
-      content: "Prepare for your technical interviews with this comprehensive guide that includes common questions, strategies, and tips from industry professionals.",
-      resourceType: "career",
-      link: "#",
-      userId: mayaId,
-      createdAt: new Date("2023-08-30"),
-      updatedAt: new Date("2023-08-30")
-    });
   }
 }
 

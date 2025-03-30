@@ -325,6 +325,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Remove password from each user
+      const usersWithoutPasswords = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      res.json(usersWithoutPasswords);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get all forum replies
+  app.get("/api/forum/replies", async (req, res) => {
+    try {
+      const allReplies = [];
+      const posts = await storage.getAllForumPosts();
+      
+      for (const post of posts) {
+        const replies = await storage.getForumReplies(post.id);
+        allReplies.push(...replies);
+      }
+      
+      res.json(allReplies);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch forum replies" });
+    }
+  });
+
   // User profile
   app.get("/api/users/:id", async (req, res) => {
     const userId = parseInt(req.params.id);
