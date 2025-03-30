@@ -648,9 +648,9 @@ function ResourcesManager() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    url: "",
-    type: "article",
-    level: "beginner",
+    link: "",
+    resourceType: "video",
+    content: "",
     tags: ""
   });
 
@@ -733,12 +733,73 @@ function ResourcesManager() {
     setFormData({
       title: "",
       description: "",
-      url: "",
-      type: "article",
-      level: "beginner",
+      link: "",
+      resourceType: "video",
+      content: "",
       tags: ""
     });
     setEditingResource(null);
+  };
+  
+  const addPremadeResources = () => {
+    const youtubeResources = [
+      {
+        title: "Graph Algorithms for Technical Interviews",
+        description: "A comprehensive guide to graph traversal algorithms, including depth-first search, breadth-first search, and Dijkstra's algorithm with practical examples.",
+        url: "https://www.youtube.com/watch?v=tWVWeAqZ0WU",
+        type: "video",
+        level: "intermediate",
+        tags: ["graph", "algorithms", "interviews", "dfs", "bfs"]
+      },
+      {
+        title: "Dynamic Programming - Learn to Solve Algorithmic Problems",
+        description: "An in-depth tutorial on dynamic programming approach with step-by-step explanations of how to break down complex problems into simpler subproblems.",
+        url: "https://www.youtube.com/watch?v=oBt53YbR9Kk",
+        type: "video",
+        level: "advanced",
+        tags: ["dynamic-programming", "algorithms", "optimization"]
+      },
+      {
+        title: "Data Structures Easy to Advanced Course",
+        description: "Full tutorial from a Google engineer teaching the foundational data structures from scratch with implementations in various languages.",
+        url: "https://www.youtube.com/watch?v=RBSGKlAvoiM",
+        type: "video",
+        level: "beginner",
+        tags: ["data-structures", "trees", "linked-lists", "arrays", "fundamentals"]
+      },
+      {
+        title: "System Design Interview Preparation",
+        description: "Learn how to approach system design interviews with practical examples of distributed systems architecture and scalability considerations.",
+        url: "https://www.youtube.com/watch?v=UzLMhqg3_Wc",
+        type: "video",
+        level: "advanced",
+        tags: ["system-design", "interviews", "scalability", "distributed-systems"]
+      }
+    ];
+    
+    // Add resources one by one
+    const addResource = async (index = 0) => {
+      if (index >= youtubeResources.length) {
+        toast({
+          title: "Resources added",
+          description: `Successfully added ${youtubeResources.length} YouTube resources`,
+        });
+        return;
+      }
+      
+      try {
+        await createResourceMutation.mutateAsync(youtubeResources[index]);
+        setTimeout(() => addResource(index + 1), 300);
+      } catch (error) {
+        toast({
+          title: "Failed to add resources",
+          description: (error as Error).message,
+          variant: "destructive",
+        });
+      }
+    };
+    
+    addResource();
   };
 
   const handleAddNew = () => {
@@ -797,10 +858,16 @@ function ResourcesManager() {
           <CardTitle>Resources Management</CardTitle>
           <CardDescription>Add and manage learning resources for members</CardDescription>
         </div>
-        <Button onClick={handleAddNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Resource
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={addPremadeResources}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add YouTube Resources
+          </Button>
+          <Button onClick={handleAddNew}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add New Resource
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
