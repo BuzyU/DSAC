@@ -1,0 +1,108 @@
+Project Title: Data Structure & Algorithm Club (DSAC) Website
+Objective:
+Develop a fully functional, responsive, and scalable website for DSAC (Data Structure & Algorithm Club) with a Leaderboard Page to rank members based on coding contests, problem-solving skills, and participation.
+
+Technical Requirements:
+1. Frontend:
+Framework: React.js (Next.js preferred for SEO & performance)
+
+Styling: Tailwind CSS / Bootstrap
+
+Features:
+
+Landing Page (Club intro, events, latest updates)
+
+Dashboard for registered members
+
+Event Management (Registration, Results, Updates)
+
+Discussion Forum (Ask & Answer DSA problems)
+
+Blog & Resources Section
+
+Leaderboard Page (Dynamic rankings of members based on coding performance)
+
+Dark Mode Support
+
+Responsive UI (Desktop, Tablet, Mobile)
+
+2. Backend:
+Framework: Node.js (Express.js) or Django (Python)
+
+Authentication: JWT-based authentication (OAuth optional for social login)
+
+API: RESTful API to manage frontend-backend communication
+
+Admin Panel: Manage users, events, and leaderboard
+
+3. Database:
+Primary Database: PostgreSQL / MongoDB
+
+Entities:
+
+Users: (Admin, Members, Guests)
+
+Events: (Title, Date, Description, Registration, Winners)
+
+Leaderboard: (User, Score, Rank, Contest History)
+
+Discussion Forum: (Posts, Replies, Upvotes)
+
+Blogs/Resources: (Articles, Tutorials, Links)
+
+Leaderboard Page:
+Features:
+User Rankings: Displays top members based on their DSA performance
+
+Scoring System:
+
+Points awarded for contest participation, problem-solving, and forum contributions
+
+Automatic updates based on contest results
+
+Filtering & Sorting:
+
+Sort by Total Score, Weekly Rank, Monthly Rank
+
+Filter by Beginner, Intermediate, Advanced
+
+Profile Links: Clicking on a name redirects to the user’s profile
+
+Top Coder Highlight: Special badges for top 3 performers
+
+Scoring Mechanism (Example):
+Competitive Programming Contest:
+
+1st place = 100 points
+
+2nd place = 80 points
+
+3rd place = 60 points
+
+Participation = 20 points
+
+Forum Contributions:
+
+Best Answer (Most Upvoted) = 10 points
+
+Helpful Reply = 5 points
+
+Deployment Plan:
+Frontend: Vercel / Netlify
+
+Backend: Render / Railway / AWS
+
+Database: Supabase / Firebase / PostgreSQL (Hosted)
+
+CI/CD: GitHub Actions for auto-deployment
+
+Expected Deliverables:
+Fully deployed website with Leaderboard Page
+
+Source code repository (GitHub/GitLab)
+
+Admin Dashboard Credentials for managing users & leaderboard
+
+API Documentation
+
+Deployment & Maintenance Guide
